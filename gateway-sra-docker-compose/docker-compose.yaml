@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  akl-gw-vm:
+    environment:
+      - ALLOWED_ACCESS_IDS=p-xxxx email=user@example.com,p-xxxx email=xx@akeyless,p-xxxx email=xx@xx.xx,p-xxx,p-xxx email=xx@xx.io,p-xxxx
+     #- ALLOWED_ACCESS_IDS=p-xxxx email=user@example.com,p-xxxx,p-xxxx email=user@example.com,p-xxxx
+      - ADMIN_ACCESS_ID=p-xxxx
+      - ADMIN_ACCESS_KEY=xxxx
+      - ENABLE_METRICS="true"
+    ports:
+      - '8000:8000'
+      - '8200:8200'
+      - '18888:18888'
+      - '8080:8080'
+      - '8081:8081'
+      - '8889:8889'
+    volumes:
+      - /home/user/akl/otel-config.yaml:/akeyless/otel-config.yaml
+    container_name: akl-gw-vm
+    restart: unless-stopped
+    image: akeyless/base
+  ssh:
+    environment:
+      - CLUSTER_NAME=docker_sra
+      - ALLOWED_ACCESS_IDS=p-xxxxxxxxxxxx email=user@example.com,p-xxxxxxxxxxxx,p-xxxxxxxxxxxx email=user@example.com
+    cap_add:
+      - SYS_ADMIN
+    ports:
+      - '2222:22'
+      - '9900:9900'
+    volumes:
+      - /home/user/akl/creds/akeyless_config_file:/var/akeyless/conf/akeyless_config_file
+      - /home/user/akl/creds:/var/akeyless/creds
+      - /home/user/akl/etc-ssh/ssh:/etc/ssh
+      - /home/user/akl/log_forwarding.conf:/var/akeyless/conf/logand.conf
+    container_name: ssh_bastion
+    privileged: true
+    restart: unless-stopped
+    image: akeyless/ssh-proxy:latest
+  zero-trust-bastion:
+    ports:
+      - '8888:8888'
+    environment:
+      - AKEYLESS_URL=http://gw.example.local:8080
+      - PRIVILEGED_ACCESS_ID=p-xxxxxxxxxxxx
+      - PRIVILEGED_ACCESS_KEY=abcdefg
+    container_name: zt_bastion
+    image: 'akeyless/zero-trust-bastion:latest'
+  syslog:
+    image: balabit/syslog-ng:latest
+    hostname: syslog
+    container_name: syslog
+    restart: unless-stopped
+    ports:
+      - "514:514/udp"
+      - "514:514/tcp"
+      - "601:601"
+      - "6514:6514"
