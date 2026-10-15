@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#set -x
+# ---------------------------------------------------------------
+# ------- Input Variables -----------------------BEGIN-----------
+# ---------------------------------------------------------------
+CLOUD_PROVIDER="gke"
+APP_NAME="postgresql" # options include: mysql, mongodb, jenkins, wordpress, elasticsearch, grafana, etc..
+AKEYLESS_NAMESPACE="fk-$CLOUD_PROVIDER-akeyless"
+# ---------------------------------------------------------------
+# ------- Input Variables -----------------------END-------------
+# ---------------------------------------------------------------
+
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install "$CLOUD_PROVIDER"-"$APP_NAME" bitnami/"$APP_NAME" --namespace "$AKEYLESS_NAMESPACE"
+
+# Read more about the installation in the PostgreSQL packaged by Bitnami Chart Github repository
+# https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#installing-the-chart
